@@ -1,15 +1,14 @@
 'use client';
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { firestore } from "../firebase";
 import { Box, Modal, Typography, Stack, TextField, Button } from '@mui/material';
 import { collection, deleteDoc, doc, getDocs, getDoc, setDoc, query } from "firebase/firestore";
-import { Add, Remove } from '@mui/icons-material';
+import { Add, Remove, DarkMode, LightMode } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import '@fontsource/roboto'; // Importing a Google Font
 
-// Custom Theme
-const theme = createTheme({
+// Custom Themes
+const lightTheme = createTheme({
   typography: {
     fontFamily: 'Roboto, Arial, sans-serif',
   },
@@ -54,10 +53,61 @@ const theme = createTheme({
   },
 });
 
+const darkTheme = createTheme({
+  typography: {
+    fontFamily: 'Roboto, Arial, sans-serif',
+    allVariants: {
+      color: '#c0c0c0', // Set all text color to #c0c0c0
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '12px',
+          padding: '8px 16px',
+        },
+        contained: {
+          backgroundColor: '#2a2a2a',
+          color: '#c0c0c0', // Set button text color to #c0c0c0
+          '&:hover': {
+            backgroundColor: '#353535',
+          },
+        },
+        outlined: {
+          borderColor: '#3f3f3f',
+          color: '#c0c0c0', // Set button text color to #c0c0c0
+          '&:hover': {
+            borderColor: '#3f3f3f',
+            backgroundColor: '#333',
+          },
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          color: '#c0c0c0', // Set text color to #c0c0c0 for all typography elements
+        },
+      },
+    },
+    MuiBox: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+          color: '#c0c0c0', // Ensure any text inside Box uses the correct color
+        },
+      },
+    },
+  },
+});
+
+
 export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
+  const [darkMode, setDarkMode] = useState(false); // State for dark mode
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'))
@@ -110,7 +160,7 @@ export default function Home() {
   const handleClose = () => { setOpen(false) }
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <Box
         width="100vw"
         height="100vh"
@@ -119,7 +169,25 @@ export default function Home() {
         justifyContent={"center"}
         alignItems={"center"}
         p={3}
+        bgcolor={darkMode ? '#161616' : 'transparent'} // Black background for dark mode
       >
+        <Box
+          position="absolute"
+          top={16}
+          right={16}
+          display="flex"
+          alignItems="center"
+        >
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setDarkMode(!darkMode)}
+            startIcon={darkMode ? <LightMode /> : <DarkMode />}
+          >
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </Button>
+        </Box>
+
         <Typography variant="h2" gutterBottom>
           Inventory Management
         </Typography>
@@ -132,8 +200,8 @@ export default function Home() {
             top="50%"
             left="50%"
             width={400}
-            bgcolor="white"
-            border="2px solid #000"
+            bgcolor={darkMode ? '#333' : 'white'}
+            border={`2px solid ${darkMode ? '#FFD700' : '#000'}`}
             boxShadow={24}
             p={4}
             display="flex"
@@ -150,6 +218,12 @@ export default function Home() {
                 fullWidth
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
+                InputProps={{
+                  style: {
+                    color: darkMode ? '#FFF' : '#000',
+                    backgroundColor: darkMode ? '#444' : '#FFF'
+                  }
+                }}
               />
               <Button
                 variant="outlined"
@@ -167,8 +241,8 @@ export default function Home() {
         </Modal>
 
         <Box
-          border="1px solid #333"
-          bgcolor="#f0f0f0"
+          border={`1px solid ${darkMode ? '#353535' : '#778899'}`}
+          bgcolor={darkMode ? '#222' : '#f0f0f0'}
           width="800px"
           height="400px"
           p={2}
@@ -178,13 +252,16 @@ export default function Home() {
         >
           <Box
             height="50px"
-            bgcolor="#ADD8E6"
+            bgcolor={darkMode ? '#2a2a2a' : '#ADD8E6'}
             display="flex"
             justifyContent="center"
             alignItems="center"
             borderRadius={1}
+            
           >
-            <Typography variant="h5">INVENTORY ITEMS</Typography>
+            <Typography variant="h5">
+              INVENTORY ITEMS
+            </Typography>
           </Box>
 
           <Stack spacing={2} mt={2}>
@@ -196,7 +273,7 @@ export default function Home() {
                   alignItems="center"
                   justifyContent="space-between"
                   padding={2}
-                  bgcolor="white"
+                  bgcolor={darkMode ? '#151515' : 'white'}
                   borderRadius={1}
                   boxShadow={1}
                 >
@@ -243,7 +320,7 @@ export default function Home() {
         {/* Footer */}
         <Box
           width="100%"
-          bgcolor="#f0f0f0"
+          bgcolor={darkMode ? '#333' : '#B4C2CF'}
           p={1}
           position="absolute"
           bottom={0}
@@ -251,13 +328,18 @@ export default function Home() {
           justifyContent="center"
           alignItems="center"
         >
-          <Typography variant="body2">
-            Developed by <a href="https://samieahmad.pages.dev" target="_blank" rel="noopener noreferrer">Samie Ahmad</a>
+          <Typography variant="body2" color={darkMode ? '#c0c0c0' : '#000'}>
+            Developed by <a href="https://samieahmad.pages.dev" target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? '#dcdcdc' : '#000' }}>Samie Ahmad</a>
           </Typography>
         </Box>
       </Box>
     </ThemeProvider>
   );
 }
+
+
+
+
+
 
 
